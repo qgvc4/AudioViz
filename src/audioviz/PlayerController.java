@@ -7,6 +7,7 @@ package audioviz;
 
 import java.io.File;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
@@ -79,6 +80,7 @@ public class PlayerController implements Initializable {
     private ArrayList<Visualizer> visualizers;
     private Visualizer currentVisualizer;
     private final Integer[] bandsList = {1, 2, 4, 8, 16, 20, 40, 60, 100, 120, 140};
+    private int counter = 0;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -176,9 +178,9 @@ public class PlayerController implements Initializable {
 
     private void handleReady() {
         Duration duration = mediaPlayer.getTotalDuration();
-        lengthText.setText(duration.toString());
+        lengthText.setText(format(duration.toString()) + "ms");
         Duration ct = mediaPlayer.getCurrentTime();
-        currentText.setText(ct.toString());
+        currentText.setText(format(ct.toString()) + "ms");
         currentVisualizer.start(numBands, vizPane);
         timeSlider.setMin(0);
         timeSlider.setMax(duration.toMillis());
@@ -193,9 +195,11 @@ public class PlayerController implements Initializable {
     private void handleUpdate(double timestamp, double duration, float[] magnitudes, float[] phases) {
         Duration ct = mediaPlayer.getCurrentTime();
         double ms = ct.toMillis();
-        currentText.setText(Double.toString(ms));
-        if (ms % 1000 == 0) {
+        currentText.setText(format(Double.toString(ms)) + "ms");
+        // updata called 50 times then the timeslider change
+        if (counter++ == 50) {
             timeSlider.setValue(ms);
+            counter = 0;
         }
         currentVisualizer.update(timestamp, duration, magnitudes, phases);
     }
@@ -231,9 +235,9 @@ public class PlayerController implements Initializable {
         }
     }
     
-//    @Override
-//    public String toString() {
-//        DecimalFormat format = new DecimalFormat("#.0");
-//        return 
-//    }
+    // format method for length and current display
+    public String format(String str) {
+        int delim = str.indexOf('.');
+        return str.substring(0, delim + 2);
+    }
 }
